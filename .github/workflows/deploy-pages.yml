@@ -34,13 +34,16 @@ jobs:
 
       - name: Publish dist to gh-pages
         run: |
+          temp_dir="$(mktemp -d)"
+          cp -R dist/. "$temp_dir/"
+          cd "$temp_dir"
+          touch .nojekyll
+          git init -b gh-pages
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin gh-pages || true
-          git switch --orphan gh-pages
-          git rm -rf . >/dev/null 2>&1 || true
-          cp -R dist/. .
-          touch .nojekyll
           git add .
           git commit -m "Deploy GitHub Pages" || exit 0
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin gh-pages --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
